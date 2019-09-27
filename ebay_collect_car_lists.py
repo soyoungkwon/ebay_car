@@ -131,3 +131,7 @@ def car_info_clean(car_pd):
     car_pd['Post'] = car_pd['Post'].str.replace('\n', '')
     car_pd['Name'] = car_pd['Name'].str.replace('\n', '')
     return car_pd
+
+if __name__ == "__main__":
+
+    main(url, max_pages)
