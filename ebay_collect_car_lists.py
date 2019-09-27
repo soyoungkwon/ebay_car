@@ -1,9 +1,21 @@
 # ebay-kleinanzeiger website scrap,
 # get used-car info--> save it as pandas structure
 
-# steps
-# load libraries
+# Car model extraction + simplification
 # functions: main-pd-multi-pages, car-list&link-by-page, clean-pd
+# extract title name (car model + alpha), website, price,
+# To extract car model, load the car model info.
+# Check whether model name is in the title, if exists, simplify the model name
+# Then, to extract info ( miles), color from title or content
+# if color info is not written, use cv2 to extract color information from the jpeg file
+
+# Change categorical info to OneHotEncoder
+
+# Apply Linear Regression
+
+# This gets a user defined price prediction
+
+# To see whether it is sold,
 
 # load libraries
 import pandas as pd
@@ -40,7 +52,10 @@ def main_carlist_by_page(page):
     car_pd.insert(4, 'Name', namelists)
     car_pd.insert(5, 'Number', numberlists)
     car_pd = car_info_clean(car_pd)
+    car_pd.to_csv(path_curr + '/car_by_page' + str(page+1).zfill(2) +'.csv', encoding = 'utf-8', index=False)
+
     return car_pd
+
 # collect car websites for each page
 def trade_spider(url, page):
     weblist = []
@@ -54,31 +69,29 @@ def trade_spider(url, page):
     plain_text = source_code.text
     soup = BeautifulSoup(plain_text, "html.parser")
     # extract link & car_soup
-    carsoup = soup.findAll('article', {'class': 'aditem'})
+    big_carsoup = soup.findAll('article', {'class': 'aditem'})
+    carsoup = soup.findAll('a', {'class': 'ellipsis'})
 
     # href_link, car_name extract
     for link in range(len(carsoup)-1):
         # links extract
-        carchunck = carsoup[link].findAll('div', {'class', 'imagebox srpimagebox'})#.findAll('a')
-        href_unicode = carchunck[0].get('data-href')
+        href_unicode = carsoup[link].get('href')
         href = href_unicode.encode('ascii', 'ignore')
         weblist.append(href)
 
         # car_name extract
         car_unicode = carsoup[link].text
-        car_name_orig = car_unicode.encode('ascii','ignore')
-        # car_unicode = alist[link].text
-        # car_name = car_unicode.encode('ascii', 'ignore') # remove ascii coding
+        car_name_orig = car_unicode.encode('ascii','ignore')# remove ascii coding
         carlist.append(car_name_orig)
 
         # car price
-        cardiv = carsoup[link].findAll('div', {'class':'aditem-details'})
+        cardiv = big_carsoup[link].findAll('div', {'class':'aditem-details'})
         carstrong = cardiv[0].findAll('strong')
         car_price = carstrong[0].text
         pricelist.append(car_price)
 
         # time stamps
-        timesoup = carsoup[link].findAll('div', {'class', 'aditem-addon'})
+        timesoup = big_carsoup[link].findAll('div', {'class', 'aditem-addon'})
         post_time = timesoup[0].text
         timelist.append(post_time)
 
